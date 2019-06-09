@@ -1,4 +1,4 @@
- /*Equipe: Ana Beatriz da Silva Nunes - Subturma 1C (Líder) 
+/*Equipe: Ana Beatriz da Silva Nunes - Subturma 1C (Líder) 
           Joyce Karoline da Silva Araújo - Subturma 1D */
 
 var i;
@@ -14,43 +14,60 @@ var estadoDisp = false; //Estado inicial de disparo.
 var vidas = 3; //Quantidade de vidas no início do jogo.
 var pontos = 0; //Quantidade de pontos no início do jogo.
 var nivel = 1; //Nível inicial do jogo.
-var qtObj = 10; //Quantidade de objetos.
-var barreiradepontos = 500; /*Pontos a serem atingidos para passar de nível.*/
+var qtMax = 6; //Quantidade máxima de objetos.
+var qtAtual = 2; //Quantidade de objetos por nível.
+var barreiradepontos = 500; //Pontos a serem atingidos para passar de nível.
 var vxO = []; //Vetor para a posição x do objeto.  
 var vyO = []; //Vetor para a posição y do objeto.
-var imagem1;
-var imagem2;
-var jogador0;
-var objeto0;
+var imagem1; //Tela inicial do jogo.
+var imagem2; //Tela do jogo e do game over.
+var musica;
+var jogador0; //Variável pra guardar a imagem do jogador.
+var objeto0; //Variável pra guardar a imagem do objeto.
+var objeto = []; //Vetor p/ as imagens dos objetos.
 var explosao = []; //Efeito da explosão na hora da colisão.
-var estadoExplosao = false; 
-var explosaoX;
-var explosaoY;
-var contFrame = 0;
+var estadoExplosao = false; //Detecção de quando haverá a explosão.
+var explosaoX; //Efeito no eixo x.
+var explosaoY; //Efeito no eixo y.
+var contExp = 0; //Contador p/ delimitar a a repetição dos frames das imagens.
+var textX; //Posição do texto no eixo x.
+var contText = 0; //Para o efeito pisca-pisca do texto.
           
 function preload(){
     imagem1 = loadImage("telainicial.jpg");
     imagem2 = loadImage("bg.jpg");
-    jogador0 = loadImage("jogador0.png");
-    objeto0 = loadImage("mine0.png");
-    for(i=0; i <= 10; i++){
+    jogador = loadImage("ship.png");
+    objeto = loadImage("mine0.png");
+    disparo = loadImage("shot.png");
+    for(i = 0; i <= 10; i++){
         explosao[i] = loadImage("boom" + i + ".png");
     }
 }
           
 function setup(){
     createCanvas(500, 500);
+    musica = loadSound("musicatop.mp3");
     //Complemento da etapa 7.
-    for(i = 0; i < qtObj; i++){
+    for(i = 0; i < qtMax; i++){
         vxO[i] = random(0, 350);
-        vyO[i] = -100;
+        vyO[i] = -90;
     }
+}
+
+function mousePressed() {
+  if(musica.isPlaying()) {
+    musica.stop();
+    background(0);
+  } else {
+    musica.play();
+    background(255)
+  }
 }
           
 function draw(){
 //Etapa 9: Mudança de tela.
     if(tela == 1){
-        background(0);
+        background(255);
         image(imagem1, 0, 0, 500, 500);
         fill('#ffffff');
         textSize(80);
@@ -63,33 +80,33 @@ function draw(){
         }
     }
     if(tela == 2){
-        background(0);
+        background(255);
         image(imagem2, 0, 0);
         imageMode(CENTER);
         //Etapa 1: Fazer duas figuras geométricas (elipse = jogador e quadrado = obstáculo).
         //Obstáculo:
-        for(i = 0; i < qtObj; i++){
+        for(i = 0; i < qtAtual; i++){
             noFill(0); 
             noStroke(0);
             ellipse(vxO[i], vyO[i], 2*raioO, 2*raioO);
-            image(objeto0, vxO[i], vyO[i]);
+            image(objeto, vxO[i], vyO[i]);
             imageMode(CENTER);
         }
         //Jogador:
         noFill('#6eb7ad');
         noStroke('#67dbd1');
         ellipse(x, y, 2*raioJ, 2*raioJ);
-        image(jogador0, x, y);
+        image(jogador, x, y);
         imageMode(CENTER);
         //Animação da explosão.
         //image(explosao[0], explosaoX, explosaoY);
         if(estadoExplosao == true){
             imageMode(CENTER);
-            image(explosao[contFrame], explosaoX, explosaoY, 50, 50);
-            contFrame++;
-            if(contFrame > 10){
+            image(explosao[contExp], explosaoX, explosaoY, 50, 50);
+            contExp++;
+            if(contExp > 10){
                 estadoExplosao = false;
-                contFrame = 0;
+                contExp = 0;
             }
         }
             
@@ -122,7 +139,7 @@ function draw(){
         }
             
         //Movimento dos obstáculos.
-        for(i = 0;i < 2;i++){
+        for(i = 0;i < qtAtual;i++){
             vyO[i] = vyO[i] + 2;
             if(vyO[i] > 500){
                 vxO[i] = random(0,350);
@@ -137,9 +154,10 @@ function draw(){
             estadoDisp = true;
         }
         if(estadoDisp == true){
-            fill('#ff0101');
-            stroke('#930505');
+            noFill('#ff0101');
+            noStroke('#930505');
             ellipse(xd, yd, 2*raioD, 2*raioD);
+            image(disparo, xd, yd);
             yd -= 10
             if(yd < 0){
                 estadoDisp = false;
@@ -147,22 +165,16 @@ function draw(){
         }
             
         //Etapa 5: Apresentar as informações sobre o jogo na tela.
-        fill('#458da8');
-        stroke('#66a9c1');
-        textSize(12);
+        fill(255);
+        stroke('#247e87');
+        textSize(25);
         textFont('VT323');
         text('Vidas: '+vidas, 19, 30);
-        text('Pontos: '+pontos, 210, 30);
-        text('Nível: '+nivel, 420, 30);
-            
-        //Etapa 8: Implementar a mudança de nível de dificuldade para o jogo.
-        if(pontos > barreiradepontos){
-            nivel++
-            barreiradepontos = barreiradepontos + 500;
-        }
+        text('Pontos: '+pontos, 205, 30);
+        text('Nível: '+nivel, 400, 30);
             
         //Etapa 6: Detectar colisão entre o jogador e um objeto do cenário + Complemento da etapa 7.
-        for(i = 0; i < qtObj; i++){
+        for(i = 0; i < qtAtual; i++){
             //Colsao com o objeto.
             if(dist(x, y, vxO[i], vyO[i]) < (raioJ + raioO)){
                 x = 250; 
@@ -172,7 +184,7 @@ function draw(){
             //Colisao do disparo com o objeto.
             if (dist(xd, yd, vxO[i], vyO[i]) < (raioD + raioO) && estadoDisp == true){
                 estadoDisp = false;
-                pontos++;
+                pontos += 50;
                 vyO[i] = -random(100, 500);
                 vxO[i] = random(50, 450);
                 estadoExplosao = true; 
@@ -181,6 +193,18 @@ function draw(){
                    
             }
         }
+        //Etapa 8: Implementar a mudança de nível de dificuldade para o jogo.
+        if(pontos > barreiradepontos){
+            barreiradepontos = barreiradepontos + 500;
+            nivel++
+        }
+        if(nivel == 2){
+            qtAtual = 4;
+        }
+        if(nivel == 3){
+            qtAtual = 6;
+        }
+        
         if(vidas <= 0){
             tela = 3;
         } 
@@ -202,9 +226,9 @@ function draw(){
             nivel = 1;
             x = 250;   
             y = 400;
-            for(i = 0; i < qtObj; i++){
+            for(i = 0; i < qtAtual; i++){
                 vxO[i] = random(0, 350);
-                vyO[i] = -100;
+                vyO[i] = -90;
             }
         }
     }
