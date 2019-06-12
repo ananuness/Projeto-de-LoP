@@ -1,5 +1,5 @@
-/*Equipe: Ana Beatriz da Silva Nunes - Subturma 1C (Líder) 
-          Joyce Karoline da Silva Araújo - Subturma 1D */
+/*Equipe: Ana Beatriz da Silva Nunes - Turma 1C (Líder) 
+          Joyce Karoline da Silva Araújo - Turma 1D */
 
 var i;
 var x = 250; //Posição x do jogador.   
@@ -11,17 +11,19 @@ var raioJ = 30; //Raio do jogador p/ ser usado na colisão.
 var raioD = 7; //Raio do disparo p/ ser usado na colisão.
 var tela = 1; //Valor inicial p/ troca de telas.
 var estadoDisp = false; //Estado inicial de disparo.
-var vidas = 3; //Quantidade de vidas no início do jogo.
-var pontos = 0; //Quantidade de pontos no início do jogo.
-var nivel = 1; //Nível inicial do jogo.
+var health = 3; //Quantidade de vidas no início do jogo.
+var score = 0; //Quantidade de pontos no início do jogo.
+var level = 1; //Nível inicial do jogo.
 var qtMax = 6; //Quantidade máxima de objetos.
 var qtAtual = 2; //Quantidade de objetos por nível.
-var barreiradepontos = 500; //Pontos a serem atingidos para passar de nível.
+var barreiraScore = 500; //Pontos a serem atingidos para passar de nível.
 var vxO = []; //Vetor para a posição x do objeto.  
 var vyO = []; //Vetor para a posição y do objeto.
 var imagem1; //Tela inicial do jogo.
 var imagem2; //Tela do jogo e do game over.
-var musica;
+var musicadojogo; //Variável p/ guardar a música do jogo.
+var musicagameover; //Variável p/ guardar a música game over.
+var gameover = true; //Detecção de quando a música de game over tocará.
 var jogador0; //Variável pra guardar a imagem do jogador.
 var objeto0; //Variável pra guardar a imagem do objeto.
 var objeto = []; //Vetor p/ as imagens dos objetos.
@@ -39,6 +41,8 @@ function preload(){
     jogador = loadImage("ship.png");
     objeto = loadImage("mine0.png");
     disparo = loadImage("shot.png");
+    musicadojogo = loadSound("musicatop.mp3");
+    musicagameover = loadSound("losemusic.wav");
     for(i = 0; i <= 10; i++){
         explosao[i] = loadImage("boom" + i + ".png");
     }
@@ -46,7 +50,7 @@ function preload(){
           
 function setup(){
     createCanvas(500, 500);
-    musica = loadSound("musicatop.mp3");
+    musicadojogo = loadSound("musicatop.mp3");
     //Complemento da etapa 7.
     for(i = 0; i < qtMax; i++){
         vxO[i] = random(0, 350);
@@ -55,11 +59,11 @@ function setup(){
 }
 
 function mousePressed() {
-  if(musica.isPlaying()) {
-    musica.stop();
+  if(musicadojogo.isPlaying()) {
+    musicadojogo.stop();
     background(0);
   } else {
-    musica.play();
+    musicadojogo.play();
     background(255)
   }
 }
@@ -169,9 +173,9 @@ function draw(){
         stroke('#247e87');
         textSize(25);
         textFont('VT323');
-        text('Vidas: '+vidas, 19, 30);
-        text('Pontos: '+pontos, 205, 30);
-        text('Nível: '+nivel, 400, 30);
+        text('Health: '+health, 19, 30);
+        text('Score: '+score, 205, 30);
+        text('Level: '+level, 400, 30);
             
         //Etapa 6: Detectar colisão entre o jogador e um objeto do cenário + Complemento da etapa 7.
         for(i = 0; i < qtAtual; i++){
@@ -179,12 +183,12 @@ function draw(){
             if(dist(x, y, vxO[i], vyO[i]) < (raioJ + raioO)){
                 x = 250; 
                 y = 400;
-                vidas = vidas - 1;    
+                health -= 1;    
             }
             //Colisao do disparo com o objeto.
             if (dist(xd, yd, vxO[i], vyO[i]) < (raioD + raioO) && estadoDisp == true){
                 estadoDisp = false;
-                pontos += 50;
+                score += 50;
                 vyO[i] = -random(100, 500);
                 vxO[i] = random(50, 450);
                 estadoExplosao = true; 
@@ -194,22 +198,28 @@ function draw(){
             }
         }
         //Etapa 8: Implementar a mudança de nível de dificuldade para o jogo.
-        if(pontos > barreiradepontos){
-            barreiradepontos = barreiradepontos + 500;
-            nivel++
+        if(score > barreiraScore){
+            barreiraScore = barreiraScore + 500;
+            level++
         }
-        if(nivel == 2){
+        if(level == 2){
             qtAtual = 4;
         }
-        if(nivel == 3){
+        if(level == 3){
             qtAtual = 6;
         }
         
-        if(vidas <= 0){
+        if(health <= 0){
             tela = 3;
         } 
     } 
     if(tela == 3){
+        musicadojogo.setVolume(0);
+        musicagameover.setVolume(0.5);
+        if(gameover == true){
+            musicagameover.play();
+            gameover = false;
+        }
         background(0);
         image(imagem2, 0, 0);
         imageMode(CENTER);
@@ -218,12 +228,16 @@ function draw(){
         textFont('VT323');
         text('GAME OVER', 110, 235);
         textSize(40);
-        text('Press ENTER to restart', 80, 290);
+        text('Score:' + score, 198, 270);
+        textSize(40);
+        text('Press ENTER to restart', 80, 310);
         if(keyIsDown(ENTER)){
+            gameover = true;
+            musicadojogo.setVolume(0.5);
             tela = 2;
-            vidas = 3;
-            pontos = 0;
-            nivel = 1;
+            health = 3;
+            score = 0;
+            level = 1;
             x = 250;   
             y = 400;
             for(i = 0; i < qtAtual; i++){
@@ -233,3 +247,4 @@ function draw(){
         }
     }
 }
+
